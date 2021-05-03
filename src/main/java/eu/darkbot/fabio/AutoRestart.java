@@ -3,10 +3,13 @@ package eu.darkbot.fabio;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.core.itf.Configurable;
+import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.extensions.plugins.Plugin;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -14,10 +17,12 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Feature(name = "AutoRestart", description = "Auto restart bot when you want", enabledByDefault = false)
-public class AutoRestart implements Task, Configurable<AutoRestart.AutoStartConfig> {
+public class AutoRestart implements Task, InstructionProvider, Configurable<AutoRestart.AutoStartConfig> {
 
     private Main main;
     private AutoStartConfig autoStartConfig;
+    private int newsize;
+    private int oldsize;
 
     @Override
     public void install(Main main) {
@@ -34,6 +39,7 @@ public class AutoRestart implements Task, Configurable<AutoRestart.AutoStartConf
     public void tickTask() {
         Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
+        if (oldsize != newsize)
         if (ifFileNotEmpty() && autoStartConfig.Time.equals(formatter.format(date))) {
             try {
                 Runtime.getRuntime().exec("javaw -jar DarkBot.jar -start -login file.properties");
@@ -87,14 +93,19 @@ public class AutoRestart implements Task, Configurable<AutoRestart.AutoStartConf
             try {
                 Properties p = new Properties();
                 reader = new FileReader("file.properties");
+                oldsize = reader.read();
                 p.load(reader);
 
                 if (!p.getProperty("username").isEmpty() && !p.getProperty("password").isEmpty()) {
-                    if (!main.featureRegistry.getFeatureDefinition(this).getIssues().getIssues().isEmpty())
-                        main.featureRegistry.getFeatureDefinition(this).sendUpdate();
+                    if (!main.featureRegistry.getFeatureDefinition(this).getIssues().getIssues().isEmpty()) {
+                        main.featureRegistry.getFeatureDefinition(this).getIssues().getIssues().clear();
+                        main.pluginUpdater.checkUpdates();
+                    }
                     return true;
                 } else {
-                    main.featureRegistry.getFeatureDefinition(this).getIssues().addWarning("Schifo: dio can", "ghe sboro");
+                    main.featureRegistry.getFeatureDefinition(this).getIssues()
+                            .addWarning("Warning: user data are empty, click on gear and open file then write credential", "");
+                    main.featureRegistry.getFeatureDefinition(this).setStatus(false);
                     return false;
                 }
             } catch (FileNotFoundException e) {
@@ -107,8 +118,27 @@ public class AutoRestart implements Task, Configurable<AutoRestart.AutoStartConf
         return false;
     }
 
-    public static class AutoStartConfig {
+    @Override
+    public JComponent beforeConfig() {
+        JButton openfile = new JButton("Open 'file.properties' file");
+        openfile.addActionListener(e -> {
+            if (Desktop.isDesktopSupported()) {
+                File file = new File("file.properties");
+                Desktop desktop = Desktop.getDesktop();
+                try {
+                    if (!file.exists()) {
+                        createFile();
+                    }
+                    desktop.open(file);
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+        });
+        return openfile;
+    }
 
+    public static class AutoStartConfig {
         @Option(value = "Time")
         public String Time = "05:35";
     }
