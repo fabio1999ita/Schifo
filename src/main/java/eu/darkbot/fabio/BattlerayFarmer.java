@@ -16,6 +16,7 @@ import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.extensions.features.Feature;
+import com.github.manolo8.darkbot.modules.LootModule;
 import com.github.manolo8.darkbot.modules.LootNCollectorModule;
 import com.github.manolo8.darkbot.modules.MapModule;
 import com.github.manolo8.darkbot.modules.utils.NpcAttacker;
@@ -25,6 +26,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+
+import static com.github.manolo8.darkbot.Main.API;
 
 @Feature(name = "BattlerayFarmer", description = "this module was made to farm Battlerays in 5-3", enabledByDefault = false)
 public class BattlerayFarmer extends LootNCollectorModule implements Configurable<BattlerayFarmer.BattlerayConfig> {
@@ -60,6 +63,11 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
     }
     public void uninstall(){
 
+    }
+
+    @Override
+    public boolean canRefresh() {
+        return false;
     }
 
     public void tickModule() {
@@ -129,8 +137,11 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
                             main.hero.roamMode();
                             hero.drive.move(SAFE);
                         }
-                        if (!hero.drive.isMoving() && hero.health.shieldPercent() >= 0.85D && getDistance(SAFE) < 200)
+                        if (!hero.drive.isMoving() && hero.health.shieldPercent() >= 0.85D && getDistance(SAFE) < 200) {
                             hero.setMode(main.config.GENERAL.SAFETY.REPAIR);
+                            if (System.currentTimeMillis() - main.lastRefresh > ((long) config.MISCELLANEOUS.REFRESH_TIME - 0.2) * 60 * 1000)
+                                API.handleRefresh();
+                        }
                     } else {
                         PALLADIUM = this.boxes.stream().filter(box -> box.type.equals("ore_8")).min(Comparator.comparingDouble(box -> this.hero.locationInfo.now.distance((Entity) box))).orElse(null);
                         if (!main.hero.drive.isMoving() || PALLADIUM != null) {
