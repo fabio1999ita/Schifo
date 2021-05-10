@@ -80,7 +80,7 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
                         .min(Comparator.comparingDouble(npc -> npc.locationInfo.distance(this.hero))).orElse(null);
 
                 INTERCEPTOR = this.npcs.stream().filter(npc -> npc.playerInfo.username.equals("-=[ Interceptor ]=-"))
-                        .min(Comparator.comparingDouble(npc -> npc.locationInfo.distance(this.hero))).orElse(null);
+                        .findFirst().orElse(null);
 
                 SABOTEUR = this.npcs.stream().filter(npc -> npc.playerInfo.username.equals("-=[ Saboteur ]=-"))
                         .findFirst().orElse(null);
