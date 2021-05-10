@@ -1,12 +1,13 @@
 {
   "name": "Schifo",
   "author": "Fabio",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "minVersion": "1.13.17 beta 87",
   "supportedVersion": "1.13.17 beta 87",
   "features": [
     "eu.darkbot.fabio.BattlerayFarmer",
-    "eu.darkbot.fabio.AutoRestart"
+    "eu.darkbot.fabio.AutoRestart",
+    "eu.darkbot.fabio.CacheCleanup"
   ],
   "download": "https://gist.github.com/fabio1999ita/c8d2f16fcd6924a2e77f52b41969a7a6/raw/Schifo.jar",
   "update": "https://gist.githubusercontent.com/fabio1999ita/c8d2f16fcd6924a2e77f52b41969a7a6/raw/Schifo.json"
