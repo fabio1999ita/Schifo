@@ -4,7 +4,6 @@ import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.BoxInfo;
 import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.NpcInfo;
-import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.core.entities.Box;
 import com.github.manolo8.darkbot.core.entities.Entity;
@@ -16,7 +15,6 @@ import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.extensions.features.Feature;
-import com.github.manolo8.darkbot.modules.LootModule;
 import com.github.manolo8.darkbot.modules.LootNCollectorModule;
 import com.github.manolo8.darkbot.modules.MapModule;
 import com.github.manolo8.darkbot.modules.utils.NpcAttacker;
@@ -40,6 +38,7 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
     private NpcAttacker attack;
     private Npc BATTLERAY;
     private Npc INTERCEPTOR;
+    private Npc SABOTEUR;
     private Portal SAFE;
     private Box PALLADIUM;
     private BattlerayConfig battlerayConfig;
@@ -61,7 +60,8 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
         this.config = main.config;
         preSet();
     }
-    public void uninstall(){
+
+    public void uninstall() {
 
     }
 
@@ -80,6 +80,9 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
                         .min(Comparator.comparingDouble(npc -> npc.locationInfo.distance(this.hero))).orElse(null);
 
                 INTERCEPTOR = this.npcs.stream().filter(npc -> npc.playerInfo.username.equals("-=[ Interceptor ]=-"))
+                        .min(Comparator.comparingDouble(npc -> npc.locationInfo.distance(this.hero))).orElse(null);
+
+                SABOTEUR = this.npcs.stream().filter(npc -> npc.playerInfo.username.equals("-=[ Saboteur ]=-"))
                         .findFirst().orElse(null);
 
                 SAFE = this.portals.stream().filter(p -> p.factionId == main.hero.playerInfo.factionId)
@@ -95,12 +98,19 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
                     else
                         currentStatus = State.DRIVE_BATTLERAY_ATTACK;
                     if (getDistance(BATTLERAY) > 2200 && INTERCEPTOR != null && battlerayConfig.killAlienWhenFly) {
-                        main.hero.roamMode();
-                        main.hero.drive.move(BATTLERAY.locationInfo.now);
-                        attack.target = INTERCEPTOR;
-                        attack.doKillTargetTick();
-                        if (attack.hasTarget() && attack.target.locationInfo.now.distance(hero.locationInfo.now) > 950)
-                            attack.target = null;
+                        if (hero.shipInfo.speed < 200 && getDistance(SABOTEUR) < 1000 && battlerayConfig.killSaboteur) {
+                            main.hero.attackMode();
+                            main.hero.drive.move(BATTLERAY.locationInfo.now);
+                            attack.target = SABOTEUR;
+                            attack.doKillTargetTick();
+                        } else {
+                            main.hero.roamMode();
+                            main.hero.drive.move(BATTLERAY.locationInfo.now);
+                            attack.target = INTERCEPTOR;
+                            attack.doKillTargetTick();
+                            if (attack.hasTarget() && attack.target.locationInfo.now.distance(hero.locationInfo.now) > 950)
+                                attack.target = null;
+                        }
                     } else {
                         if ((main.hero.target == null || !attack.hasTarget()) && (getDistance(BATTLERAY) > 1000)) {
                             if (getDistance(BATTLERAY) > 1600)
@@ -143,7 +153,7 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
                                 API.handleRefresh();
                         }
                     } else {
-                        PALLADIUM = this.boxes.stream().filter(box -> box.type.equals("ore_8")).min(Comparator.comparingDouble(box -> this.hero.locationInfo.now.distance((Entity) box))).orElse(null);
+                        PALLADIUM = this.boxes.stream().filter(box -> box.type.equals("ore_8")).min(Comparator.comparingDouble(box -> this.hero.locationInfo.now.distance(box))).orElse(null);
                         if (!main.hero.drive.isMoving() || PALLADIUM != null) {
                             currentStatus = State.DRIVE_PALLADIUM;
                             main.hero.roamMode();
@@ -167,21 +177,22 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
             }
     }
 
-    private void preSet(){
+    private void preSet() {
         config.LOOT.NPC_INFOS.computeIfAbsent("-=[ Battleray ]=-", n -> new NpcInfo()).radius = 630;
         config.LOOT.NPC_INFOS.computeIfAbsent("-=[ Interceptor ]=-", n -> new NpcInfo()).radius = 580;
+        config.LOOT.NPC_INFOS.computeIfAbsent("-=[ Saboteur ]=-", n -> new NpcInfo()).radius = 580;
         config.COLLECT.BOX_INFOS.computeIfAbsent("ore_8", n -> new BoxInfo()).collect = true;
         config.COLLECT.BOX_INFOS.computeIfAbsent("ore_8", n -> new BoxInfo()).waitTime = 780;
         config.GROUP.OPEN_INVITES = true;
         config.GROUP.ACCEPT_INVITES = true;
     }
 
-    private double getDistance(Entity entity){
+    private double getDistance(Entity entity) {
         return hero.locationInfo.now.distance(entity.locationInfo.now);
     }
 
     private void startAttack(Npc npc) {
-        if (npc != null){
+        if (npc != null) {
             attack.target = npc;
             main.hero.attackMode(npc);
             attack.doKillTargetTick();
@@ -230,7 +241,7 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
         DRIVE_SAFE_REPAIR("Driving to safe spot for repair"),
         DRIVE_PALLADIUM("Searching Palladium");
 
-        private String message;
+        private final String message;
 
         State(String message) {
             this.message = message;
@@ -244,7 +255,7 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
         @Option(value = "Pick palladium", description = "Pick palladium while waiting Battleray")
         public boolean pickPalladium = false;
 
-        @Option(value = "Kill saboteur (IN DEV)", description = "[IN DEV] Kill saboteur if it's slowing you down")
+        @Option(value = "Kill saboteur", description = "Kill saboteur if it's slowing you down (need kill alien when fly on)")
         public boolean killSaboteur = false;
     }
 
