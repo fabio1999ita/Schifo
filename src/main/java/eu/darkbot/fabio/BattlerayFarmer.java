@@ -90,7 +90,7 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
 
                 if (SAFE != null)
                     if (getDistance(SAFE) < 200)
-                        isRepaired = hero.health.hpPercent() > main.config.GENERAL.SAFETY.REPAIR_HP_RANGE.max;
+                        isRepaired = hero.health.hpPercent() >= main.config.GENERAL.SAFETY.REPAIR_HP_RANGE.max;
 
                 if (BATTLERAY != null && (hero.health.hpPercent() > main.config.GENERAL.SAFETY.REPAIR_HP_RANGE.min && isRepaired)) {
                     if (getDistance(BATTLERAY) > 1400)
@@ -138,8 +138,8 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
                         }
                     }
                 } else {
-                    if (!(hero.health.hpPercent() > main.config.GENERAL.SAFETY.REPAIR_HP_RANGE.min && hero.health.hpPercent() > main.config.GENERAL.SAFETY.REPAIR_HP_RANGE.max) || !(battlerayConfig.pickPalladium)) {
-                        if (hero.health.hpPercent() > main.config.GENERAL.SAFETY.REPAIR_HP_RANGE.min && hero.health.hpPercent() > main.config.GENERAL.SAFETY.REPAIR_HP_RANGE.max)
+                    if (!(hero.health.hpPercent() > main.config.GENERAL.SAFETY.REPAIR_HP_RANGE.min && hero.health.hpPercent() >= main.config.GENERAL.SAFETY.REPAIR_HP_RANGE.max) || !(battlerayConfig.pickPalladium)) {
+                        if (hero.health.hpPercent() > main.config.GENERAL.SAFETY.REPAIR_HP_RANGE.min && hero.health.hpPercent() >= main.config.GENERAL.SAFETY.REPAIR_HP_RANGE.max)
                             currentStatus = State.DRIVE_SAFE;
                         else
                             currentStatus = State.DRIVE_SAFE_REPAIR;
@@ -152,6 +152,12 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
                             if (System.currentTimeMillis() - main.lastRefresh > ((long) config.MISCELLANEOUS.REFRESH_TIME - 0.2) * 60 * 1000)
                                 API.handleRefresh();
                         }
+
+                        if (attack.target != null) {
+                            attack.target.removed();
+                            attack.target = null;
+                        }
+
                     } else {
                         PALLADIUM = this.boxes.stream().filter(box -> box.type.equals("ore_8")).min(Comparator.comparingDouble(box -> this.hero.locationInfo.now.distance(box))).orElse(null);
                         if (!main.hero.drive.isMoving() || PALLADIUM != null) {
