@@ -6,11 +6,13 @@ import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.extensions.features.Feature;
+import eu.darkbot.VerifierChecker.VerifierChecker;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Properties;
@@ -23,6 +25,8 @@ public class AutoRestart implements Task, InstructionProvider, Configurable<Auto
 
     @Override
     public void install(Main main) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
+        if (!VerifierChecker.getAuthApi().requireDonor()) return;
         this.main = main;
         createFile();
     }

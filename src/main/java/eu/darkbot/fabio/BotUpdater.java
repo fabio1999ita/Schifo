@@ -8,17 +8,21 @@ import com.github.manolo8.darkbot.gui.utils.Popups;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import eu.darkbot.VerifierChecker.VerifierChecker;
 
 import javax.swing.*;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
 
 @Feature(name = "BotUpdater", description = "This module auto update Darkbot", enabledByDefault = false)
 public class BotUpdater implements Task {
 
     @Override
     public void install(Main main) {
+        if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
+        if (!VerifierChecker.getAuthApi().requireDonor()) return;
         try {
             URL url = new URL("https://gist.githubusercontent.com/fabio1999ita/c8d2f16fcd6924a2e77f52b41969a7a6/raw/version.json");
             URLConnection request = url.openConnection();
