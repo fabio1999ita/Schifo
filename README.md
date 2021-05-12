@@ -1,0 +1,2 @@
+# Schifo
+A Darkbot plugin
