@@ -1,13 +1,13 @@
 package eu.darkbot.fabio;
 
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.core.itf.Behaviour;
+import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 
 import java.io.IOException;
 
 @Feature(name = "CacheCleanup", description = "Auto cache cleanup for Darkbot", enabledByDefault = false)
-public class CacheCleanup implements Behaviour {
+public class CacheCleanup implements Task {
 
     @Override
     public void install(Main main) {
