@@ -1,4 +1,4 @@
-package eu.darkbot.fabio;
+package eu.darkbot.fabio.modules;
 
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.itf.Task;
