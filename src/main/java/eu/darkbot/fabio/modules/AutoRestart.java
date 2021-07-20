@@ -1,12 +1,16 @@
-package eu.darkbot.fabio;
+package eu.darkbot.fabio.modules;
 
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.config.types.Editor;
 import com.github.manolo8.darkbot.config.types.Option;
+import com.github.manolo8.darkbot.config.types.Options;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.itf.InstructionProvider;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.extensions.features.Feature;
+import com.github.manolo8.darkbot.gui.tree.components.JListField;
 import eu.darkbot.VerifierChecker.VerifierChecker;
+import eu.darkbot.fabio.utils.ConfigsSupplier;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,11 +43,15 @@ public class AutoRestart implements Task, InstructionProvider, Configurable<Auto
     @Override
     public void tickTask() {
         Date date = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
+        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
         if (ifFileNotEmpty() && autoStartConfig.Time.equals(formatter.format(date))) {
             try {
-                Runtime.getRuntime().exec("javaw -jar DarkBot.jar -start -login file.properties");
-                main.featureRegistry.getFeatureDefinition(this).setStatus(false);
+                if (autoStartConfig.autoHideApi)
+                    Runtime.getRuntime().exec("javaw -jar DarkBot.jar -start -login file.properties -config " + autoStartConfig.configs + " -hide");
+                else
+                    Runtime.getRuntime().exec("javaw -jar DarkBot.jar -start -login file.properties -config " + autoStartConfig.configs);
+                if (autoStartConfig.disableInRestart)
+                    main.featureRegistry.getFeatureDefinition(this).setStatus(false);
                 System.exit(20);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -137,7 +145,18 @@ public class AutoRestart implements Task, InstructionProvider, Configurable<Auto
     }
 
     public static class AutoStartConfig {
-        @Option(value = "Restart time (HH:mm)")
-        public String Time = "05:35";
+        @Option(value = "Restart time (HH:mm:ss)")
+        public String Time = "05:35:00";
+
+        @Option(value = "Select config")
+        @Editor(JListField.class)
+        @Options(ConfigsSupplier.class)
+        public String configs = "config";
+
+        @Option(value = "Disable after auto restart", description = "After auto restart the module will auto disable")
+        public boolean disableInRestart = false;
+
+        @Option(value = "Auto hide API", description = "After auto restart the API will auto hide")
+        public boolean autoHideApi = false;
     }
 }
