@@ -78,10 +78,15 @@ public class BotUpdater implements Task, Configurable<BotUpdater.UpdaterConfig> 
             }
             File f = new File("RunBot.bat");
             if (updaterConfig.useOwnFile)
-                //Runtime.getRuntime().exec("cmd /c start RunBot.bat && taskkill /f /im cmd.exe");
-                Runtime.getRuntime().exec("javaw -jar DarkBot.jar -start -login file.properties");
+                if (updaterConfig.autoHideApi)
+                    Runtime.getRuntime().exec("javaw -jar DarkBot.jar -start -login file.properties -hide");
+                else
+                    Runtime.getRuntime().exec("javaw -jar DarkBot.jar -start -login file.properties");
             else
-                Runtime.getRuntime().exec("javaw -jar DarkBot.jar");
+                if (updaterConfig.autoHideApi)
+                    Runtime.getRuntime().exec("javaw -jar DarkBot.jar -hide");
+                else
+                    Runtime.getRuntime().exec("javaw -jar DarkBot.jar");
             System.exit(10);
         } catch (IOException e) {
             e.printStackTrace();
@@ -98,5 +103,8 @@ public class BotUpdater implements Task, Configurable<BotUpdater.UpdaterConfig> 
 
         @Option(value = "Use file.properties", description = "Use file.properties for auto login")
         public boolean useOwnFile = false;
+
+        @Option(value = "Auto hide API", description = "After auto restart the API will auto hide")
+        public boolean autoHideApi = false;
     }
 }
