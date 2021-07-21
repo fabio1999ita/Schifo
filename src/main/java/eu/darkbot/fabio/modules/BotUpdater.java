@@ -40,9 +40,9 @@ public class BotUpdater implements Task, Configurable<BotUpdater.UpdaterConfig> 
             Version newVersion = new Version(version);
 
             if (Main.VERSION.compareTo(newVersion) < 0) {
-                if (updaterConfig.autoUpdate) {
+                /*if (main.config.CUSTOM_CONFIGS.get("autoUpdate").equals(true)) {
                     updateLogic(main, newVersion);
-                } else {
+                } else {*/
                     JButton cancel = new JButton("Cancel");
                     JButton download = new JButton("Update");
                     Popups.showMessageAsync("BotUpdater",
@@ -55,7 +55,7 @@ public class BotUpdater implements Task, Configurable<BotUpdater.UpdaterConfig> 
                     download.addActionListener((event) -> {
                         updateLogic(main, newVersion);
                     });
-                }
+                //}
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -98,7 +98,7 @@ public class BotUpdater implements Task, Configurable<BotUpdater.UpdaterConfig> 
     }
 
     public static class UpdaterConfig {
-        @Option(value = "Auto update", description = "Update bot without tell to user")
+        @Option(value = "Auto update (not works)", description = "Update bot without tell to you")
         public boolean autoUpdate = false;
 
         @Option(value = "Use file.properties", description = "Use file.properties for auto login")
