@@ -3,24 +3,80 @@ package eu.darkbot.fabio.modules;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.extensions.features.Feature;
+import com.github.manolo8.darkbot.modules.utils.LegacyFlashPatcher;
 import eu.darkbot.VerifierChecker.VerifierChecker;
+import eu.darkbot.fabio.api.SchifoAPI;
+import eu.darkbot.util.Timer;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
-@Feature(name = "CacheCleanup", description = "Auto cache cleanup for Darkbot", enabledByDefault = false)
+@Feature(name = "CacheCleanup", description = "Auto cache cleanup for Darkbot", enabledByDefault = true)
 public class CacheCleanup implements Task {
+
+    final long time = System.currentTimeMillis();
+    final long maxdiff = TimeUnit.DAYS.toMillis(3);
+    private final Timer calendarTimer = Timer.get(59_000);
+    private Main main;
+    private boolean checkCalendar;
+    private boolean isRefreshing;
 
     @Override
     public void install(Main main) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
         if (!VerifierChecker.getAuthApi().requireDonor()) return;
+
+        this.main = main;
+
         try {
-            Runtime.getRuntime().exec("RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 2");
-            Runtime.getRuntime().exec("RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 8");
-            Runtime.getRuntime().exec("RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 16");
+            Files.newDirectoryStream(Paths.get("."), p -> (time - p.toFile().lastModified()) > maxdiff
+                            && (p.toFile().getName().contains("hs_err_pid")))
+                    .forEach(file -> {
+                        try {
+                            Files.delete(file);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void backgroundTick() {
+        if (main != null) {
+            if (main.hero.map.id == -1) {
+                if (!checkCalendar) {
+                    calendarTimer.tryActivate(); // Starts the 40s countdown (if not started yet)
+                    checkCalendar = true;
+                    isRefreshing = false;
+                }
+            } else {
+                calendarTimer.disarm();
+                if (calendarTimer.isInactive()) {
+                    checkCalendar = false;
+                }
+            }
+
+
+            if (!isRefreshing && calendarTimer.isArmed() && calendarTimer.isInactive()) { // Countdown did start, and  has reached 0 (the 40s have passed)
+                isRefreshing = true;
+
+                if (Main.VERSION.getBeta() >= 109) {
+                    new LegacyFlashPatcher() {{
+                        cleanupCache();
+                    }};
+                } else {
+                    SchifoAPI.sendCommand("RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 2");
+                    SchifoAPI.sendCommand("RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 8");
+                    SchifoAPI.sendCommand("RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 16");
+                }
+                Main.API.handleRefresh();
+            }
         }
     }
 

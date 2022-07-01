@@ -1,15 +1,18 @@
 {
   "name": "Schifo",
   "author": "Fabio",
-  "version": "1.0.8",
-  "minVersion": "1.13.17 beta 87",
-  "supportedVersion": "1.13.17 beta 87",
+  "version": "1.2.0",
+  "minVersion": "1.13.17 beta 108",
+  "supportedVersion": "1.13.17 beta 108",
   "features": [
-    "eu.darkbot.fabio.modules.BattlerayFarmer",
-    "eu.darkbot.fabio.modules.AutoRestart",
     "eu.darkbot.fabio.modules.BotUpdater",
-    "eu.darkbot.fabio.modules.CacheCleanup"
+    "eu.darkbot.fabio.modules.CacheCleanup",
+    "eu.darkbot.fabio.modules.BackPage",
+    "eu.darkbot.fabio.modules.AutoRestart",
+    "eu.darkbot.fabio.modules.ShowLogs",
+    "eu.darkbot.fabio.modules.ShowDeathsLog",
+    "eu.darkbot.fabio.modules.BattlerayFarmer"
   ],
-  "download": "https://gist.github.com/fabio1999ita/c8d2f16fcd6924a2e77f52b41969a7a6/raw/Schifo.jar",
-  "update": "https://gist.githubusercontent.com/fabio1999ita/c8d2f16fcd6924a2e77f52b41969a7a6/raw/Schifo.json"
+  "download": "https://gist.github.com/fabio1999ita/d3c47965a1f2758a44dc6f6fdd2fccf9/raw/Schifo.jar",
+  "update": "https://gist.github.com/fabio1999ita/d3c47965a1f2758a44dc6f6fdd2fccf9/raw/Schifo.json"
 }

@@ -98,7 +98,7 @@ public class BattlerayFarmer extends LootNCollectorModule implements Configurabl
                     else
                         currentStatus = State.DRIVE_BATTLERAY_ATTACK;
                     if (getDistance(BATTLERAY) > 2200 && INTERCEPTOR != null && battlerayConfig.killAlienWhenFly) {
-                        if (hero.shipInfo.speed < 200 && getDistance(SABOTEUR) < 1000 && battlerayConfig.killSaboteur) {
+                        if (hero.shipInfo.speed < 200 && getDistance(SABOTEUR) < 1000 && battlerayConfig.killSaboteur) { //TODO sabo error if null
                             main.hero.attackMode();
                             main.hero.drive.move(BATTLERAY.locationInfo.now);
                             attack.target = SABOTEUR;

@@ -10,11 +10,18 @@ import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.gui.tree.components.JListField;
 import eu.darkbot.VerifierChecker.VerifierChecker;
+import eu.darkbot.fabio.api.SchifoAPI;
+import eu.darkbot.fabio.api.manageAPI;
 import eu.darkbot.fabio.utils.ConfigsSupplier;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -33,10 +40,13 @@ public class AutoRestart implements Task, InstructionProvider, Configurable<Auto
         if (!VerifierChecker.getAuthApi().requireDonor()) return;
         this.main = main;
         createFile();
-    }
 
-    @Override
-    public void uninstall() {
+        if (!manageAPI.deleted)
+            manageAPI.deleteTmpFile();
+        if (!manageAPI.loaded)
+            new manageAPI();
+        if (!manageAPI.checked)
+            manageAPI.checkApiVersion();
 
     }
 
@@ -45,17 +55,13 @@ public class AutoRestart implements Task, InstructionProvider, Configurable<Auto
         Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
         if (ifFileNotEmpty() && autoStartConfig.Time.equals(formatter.format(date))) {
-            try {
-                if (autoStartConfig.autoHideApi)
-                    Runtime.getRuntime().exec("javaw -jar DarkBot.jar -start -login file.properties -config " + autoStartConfig.configs + " -hide");
-                else
-                    Runtime.getRuntime().exec("javaw -jar DarkBot.jar -start -login file.properties -config " + autoStartConfig.configs);
-                if (autoStartConfig.disableInRestart)
-                    main.featureRegistry.getFeatureDefinition(this).setStatus(false);
-                System.exit(20);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            if (autoStartConfig.autoHideApi)
+                SchifoAPI.sendCommand("javaw -jar DarkBot.jar -start -login file.properties -config " + autoStartConfig.configs + " -hide");
+            else
+                SchifoAPI.sendCommand("javaw -jar DarkBot.jar -start -login file.properties -config " + autoStartConfig.configs);
+            if (autoStartConfig.disableInRestart)
+                main.featureRegistry.getFeatureDefinition(this).setStatus(false);
+            System.exit(20);
         }
     }
 
@@ -66,11 +72,6 @@ public class AutoRestart implements Task, InstructionProvider, Configurable<Auto
 
     @Override
     public void tick() {
-
-    }
-
-    @Override
-    public void tickStopped() {
 
     }
 
@@ -126,8 +127,8 @@ public class AutoRestart implements Task, InstructionProvider, Configurable<Auto
 
     @Override
     public JComponent beforeConfig() {
-        JButton openfile = new JButton("Open 'file.properties' file");
-        openfile.addActionListener(e -> {
+        JButton openFile = new JButton("Open 'file.properties' file");
+        openFile.addActionListener(e -> {
             if (Desktop.isDesktopSupported()) {
                 File file = new File("file.properties");
                 Desktop desktop = Desktop.getDesktop();
@@ -141,7 +142,7 @@ public class AutoRestart implements Task, InstructionProvider, Configurable<Auto
                 }
             }
         });
-        return openfile;
+        return openFile;
     }
 
     public static class AutoStartConfig {

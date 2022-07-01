@@ -8,6 +8,7 @@ import java.util.*;
 public class ConfigsSupplier extends OptionList<String> {
 
     private final List<String> configs = new ArrayList<>();
+
     {
         configs.add(new File("config.json").getName().replace(".json", ""));
         File[] files = new File("configs").listFiles((dir, name) -> name.endsWith(".json"));
