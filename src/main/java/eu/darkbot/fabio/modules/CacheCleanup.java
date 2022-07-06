@@ -11,6 +11,7 @@ import eu.darkbot.util.Timer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -18,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class CacheCleanup implements Task {
 
     final long time = System.currentTimeMillis();
-    final long maxdiff = TimeUnit.DAYS.toMillis(3);
+    final long maxDiff = TimeUnit.DAYS.toMillis(3);
     private final Timer calendarTimer = Timer.get(59_000);
     private Main main;
     private boolean checkCalendar;
@@ -32,7 +33,7 @@ public class CacheCleanup implements Task {
         this.main = main;
 
         try {
-            Files.newDirectoryStream(Paths.get("."), p -> (time - p.toFile().lastModified()) > maxdiff
+            Files.newDirectoryStream(Paths.get("."), p -> (time - p.toFile().lastModified()) > maxDiff
                             && (p.toFile().getName().contains("hs_err_pid")))
                     .forEach(file -> {
                         try {
@@ -48,10 +49,12 @@ public class CacheCleanup implements Task {
 
     @Override
     public void backgroundTick() {
-        if (main != null) {
+        if (main != null && !main.config.BOT_SETTINGS.API_CONFIG.BROWSER_API.name().contains("NO_OP_API")
+                && !main.config.BOT_SETTINGS.API_CONFIG.BROWSER_API.name().contains("DARK_MEM_API")
+                && !(LocalTime.now().isAfter(LocalTime.parse("05:28:00")) && LocalTime.now().isBefore(LocalTime.parse("05:37:00")))) {
             if (main.hero.map.id == -1) {
                 if (!checkCalendar) {
-                    calendarTimer.tryActivate(); // Starts the 40s countdown (if not started yet)
+                    calendarTimer.tryActivate();
                     checkCalendar = true;
                     isRefreshing = false;
                 }
@@ -62,8 +65,7 @@ public class CacheCleanup implements Task {
                 }
             }
 
-
-            if (!isRefreshing && calendarTimer.isArmed() && calendarTimer.isInactive()) { // Countdown did start, and  has reached 0 (the 40s have passed)
+            if (!isRefreshing && calendarTimer.isArmed() && calendarTimer.isInactive()) {
                 isRefreshing = true;
 
                 if (Main.VERSION.getBeta() >= 109) {

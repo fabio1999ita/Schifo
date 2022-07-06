@@ -1,16 +1,16 @@
 {
   "name": "Schifo",
   "author": "Fabio",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "minVersion": "1.13.17 beta 108",
   "supportedVersion": "1.13.17 beta 108",
   "features": [
     "eu.darkbot.fabio.modules.BotUpdater",
     "eu.darkbot.fabio.modules.CacheCleanup",
     "eu.darkbot.fabio.modules.BackPage",
+    "eu.darkbot.fabio.modules.HangarView",
     "eu.darkbot.fabio.modules.AutoRestart",
-    "eu.darkbot.fabio.modules.ShowLogs",
-    "eu.darkbot.fabio.modules.ShowDeathsLog",
+    "eu.darkbot.fabio.modules.ShowAllLogs",
     "eu.darkbot.fabio.modules.BattlerayFarmer"
   ],
   "download": "https://gist.github.com/fabio1999ita/d3c47965a1f2758a44dc6f6fdd2fccf9/raw/Schifo.jar",

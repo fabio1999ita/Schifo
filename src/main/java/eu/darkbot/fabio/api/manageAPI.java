@@ -91,12 +91,10 @@ public class manageAPI {
     public static boolean addSeparator(Main main, String module) {
         if (Objects.requireNonNull(main.featureRegistry.getFeatureDefinition("eu.darkbot.fabio.modules.BackPage")).isEnabled()) {
             return module.equals("BackPage");
-        /*} else if (Objects.requireNonNull(main.featureRegistry.getFeatureDefinition("eu.darkbot.fabio.modules.HangarView")).isEnabled()) {
-            return module.equals("HangarView");*/
-        } else if (Objects.requireNonNull(main.featureRegistry.getFeatureDefinition("eu.darkbot.fabio.modules.ShowLogs")).isEnabled()) {
-            return module.equals("ShowLogs");
-        } else if (Objects.requireNonNull(main.featureRegistry.getFeatureDefinition("eu.darkbot.fabio.modules.ShowDeathsLog")).isEnabled()) {
-            return module.equals("ShowDeathsLog");
+        } else if (Objects.requireNonNull(main.featureRegistry.getFeatureDefinition("eu.darkbot.fabio.modules.HangarView")).isEnabled()) {
+            return module.equals("HangarView");
+        } else if (Objects.requireNonNull(main.featureRegistry.getFeatureDefinition("eu.darkbot.fabio.modules.ShowAllLogs")).isEnabled()) {
+            return module.equals("ShowAllLogs");
         }
         return false;
         /*BackPage
