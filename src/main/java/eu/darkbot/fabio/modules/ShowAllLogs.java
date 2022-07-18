@@ -32,11 +32,12 @@ import java.util.stream.Stream;
 @Feature(name = "ShowAllLogs", description = "Displays the log files in order of modification", enabledByDefault = false)
 public class ShowAllLogs implements Task, InstructionProvider, ExtraMenuProvider {
 
+    List<String> logsList = new ArrayList<>();
+    List<String> logsListFile = new ArrayList<>();
+    List<String> logsListException = new ArrayList<>();
     private JTabbedPane tabbed;
-
-    private Box logsBox;
-
-    private Box deathsBox;
+    private JTextArea textLogsPane;
+    private JTextArea textDeathsPane;
 
     @Override
     public void install(Main main) {
@@ -48,16 +49,16 @@ public class ShowAllLogs implements Task, InstructionProvider, ExtraMenuProvider
         JPanel logsPanel = new JPanel(new MigLayout(""));
         JPanel deathsPanel = new JPanel(new MigLayout(""));
 
-        logsBox = Box.createVerticalBox();
-        JScrollPane logsScroll = new JScrollPane(logsBox);
+        textLogsPane = new JTextArea();
+        JScrollPane logsScroll = new JScrollPane(textLogsPane);
         logsScroll.getVerticalScrollBar().setUnitIncrement(16);
         logsPanel.add(logsScroll, "height :" + Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 2.5 +
                 ":" + Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 1.3 +
                 ", width :" + Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3.5 +
                 ":" + Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 1.4);
 
-        deathsBox = Box.createVerticalBox();
-        JScrollPane deathsScroll = new JScrollPane(deathsBox);
+        textDeathsPane = new JTextArea();
+        JScrollPane deathsScroll = new JScrollPane(textDeathsPane);
         deathsScroll.getVerticalScrollBar().setUnitIncrement(16);
         deathsPanel.add(deathsScroll, "height :" + Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 2.5 +
                 ":" + Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 1.3 +
@@ -91,10 +92,11 @@ public class ShowAllLogs implements Task, InstructionProvider, ExtraMenuProvider
     }
 
     private void printLogs() {
-        logsBox.removeAll();
+        textLogsPane.setText("");
+
         boolean checkException = false;
-        List<String> logsList = new ArrayList<>();
-        List<String> logsListException = new ArrayList<>();
+
+        int lineCount = 0;
 
         List<File> files = null;
         try {
@@ -102,6 +104,7 @@ public class ShowAllLogs implements Task, InstructionProvider, ExtraMenuProvider
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+
         assert files != null;
         for (File file : files) {
             if (file.isFile()) {
@@ -112,50 +115,60 @@ public class ShowAllLogs implements Task, InstructionProvider, ExtraMenuProvider
                             Files.newInputStream(file.toPath()), StandardCharsets.UTF_8));
 
                     while ((line = inputStream.readLine()) != null) {
-                        if (line.contains("Exception") || line.contains("\tat")) {
-                            checkException = true;
-                            if (line.startsWith("\tat"))
-                                logsListException.add("         " + line);
-                            else
+                        lineCount++;
+                        if (lineCount > 18_000)
+                            break;
+
+                        if (line.contains("Exception")) {
+                            while(line.contains("Exception")){
                                 logsListException.add(line);
-                        } else {
-                            if (checkException) {
-                                checkException = false;
+                                while ((line = inputStream.readLine()).contains("\tat")){
+                                    logsListException.add(line);
+                                }
                                 Collections.reverse(logsListException);
-                                logsList.addAll(logsListException);
+                                logsListFile.addAll(logsListException);
                                 logsListException.clear();
                             }
-                            logsList.add(line);
                         }
+
+                        if (line.length() > 25 && !line.contains("Fatal Error")) {
+                            line = line.replace(line.substring(24, 25), "");
+                            line = line.replace(line.substring(20, 24), "");
+                            line = line.replace(line.substring(0, 6), "");
+                            //line = line.replace("[2022/", "");
+                            //line = line.replace("]", "");
+                            line = line.replace("-=-", "");
+                            line = line.replace("-=[", "");
+                            line = line.replace("]=-", "");
+                        }
+
+                        logsListFile.add(line);
                     }
-                    for (int i = logsList.size() - 1; i >= 0; i--) {
-                        JTextField textField = new JTextField(logsList.get(i));
-                        textField.setEditable(false);
-                        textField.setBorder(null);
-                        textField.setForeground(UIManager.getColor("Label.foreground"));
-                        textField.setFont(UIManager.getFont("Label.font"));
-                        if (textField.getText().contains("Exception") || textField.getText().contains("\tat"))
-                            textField.setForeground(Color.red);
-                        logsBox.add(textField);
-                    }
-                    logsList.clear();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+                    Collections.reverse(logsListFile);
+                    logsList.addAll(logsListFile);
+                    logsListFile.clear();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 } finally {
                     if (inputStream != null) {
                         try {
                             inputStream.close();
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
                     }
                 }
             }
         }
+        for (String s : logsList) {
+            textLogsPane.append(s + "\n");
+        }
+        logsList.clear();
     }
 
     private void printDeaths() {
-        deathsBox.removeAll();
+        textDeathsPane.setText("");
+
         List<String> deathsList = new ArrayList<>();
 
         List<File> files = null;
@@ -178,8 +191,7 @@ public class ShowAllLogs implements Task, InstructionProvider, ExtraMenuProvider
                     }
 
                     for (int i = deathsList.size() - 1; i >= 0; i--) {
-                        JLabel label = new JLabel(deathsList.get(i) + "\n");
-                        deathsBox.add(label);
+                        textDeathsPane.append(deathsList.get(i));
                     }
                 } catch (IOException ex) {
                     ex.printStackTrace();
