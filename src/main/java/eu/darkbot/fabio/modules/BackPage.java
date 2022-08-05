@@ -8,14 +8,12 @@ import com.github.manolo8.darkbot.gui.utils.Popups;
 import eu.darkbot.VerifierChecker.VerifierChecker;
 import eu.darkbot.fabio.api.SchifoAPI;
 import eu.darkbot.fabio.api.manageAPI;
+import eu.darkbot.fabio.utils.DownloadUtil;
 
 import javax.swing.*;
 import javax.xml.bind.DatatypeConverter;
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -58,7 +56,7 @@ public class BackPage implements Task, ExtraMenuProvider {
     private void logic(Main main, String instance, String sid) {
         File backPage = new File("lib\\BackPage.jar");
         if (!backPage.exists())
-            try (BufferedInputStream in = new BufferedInputStream(new URL("https://host.darkbot.eu/uploads/Fabio/BackPage.jar").openStream()); FileOutputStream out = new FileOutputStream("lib\\BackPage.jar")) {
+            /*try (BufferedInputStream in = new BufferedInputStream(new URL("https://host.darkbot.eu/uploads/Fabio/BackPage.jar").openStream()); FileOutputStream out = new FileOutputStream("lib\\BackPage.jar")) {
                 final byte[] data = new byte[1024];
                 int count;
                 while ((count = in.read(data, 0, 1024)) != -1) {
@@ -66,25 +64,64 @@ public class BackPage implements Task, ExtraMenuProvider {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-            }
-        File flash = new File("lib\\pepflashplayer.dll");
-        if (!flash.exists())
-            try (BufferedInputStream in = new BufferedInputStream(new URL("https://host.darkbot.eu/uploads/Fabio/pepflashplayer.dll").openStream()); FileOutputStream out = new FileOutputStream("lib\\pepflashplayer.dll")) {
-                final byte[] data = new byte[1024];
-                int count;
-                while ((count = in.read(data, 0, 1024)) != -1) {
-                    out.write(data, 0, count);
+            }*/
+            new DownloadUtil("https://host.darkbot.eu/uploads/Fabio/BackPage.jar", "lib\\\\BackPage.jar", "BackPage") {
+                @Override
+                protected void done() {
+                    super.done();
+                    File flash = new File("lib\\pepflashplayer.dll");
+                    if (!flash.exists())
+                        new DownloadUtil("https://host.darkbot.eu/uploads/Fabio/pepflashplayer.dll", "lib\\\\pepflashplayer.dll", "pepflashplayer") {
+                            @Override
+                            protected void done() {
+                                super.done();
+                                if (instance != null && sid != null)
+                                    if (!main.backpage.sidStatus().contains("KO")) {
+                                        SchifoAPI.BackPage(instance, sid);
+                                    } else {
+                                        Popups.showMessageAsync("Error",
+                                                "Your SID must be OK to see the hangar.\n" +
+                                                        "Try a manual reload or restart the bot.", JOptionPane.ERROR_MESSAGE);
+                                    }
+                                else
+                                    Popups.showMessageAsync("Error",
+                                            "The instance & sid are null, wait loading game", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }.execute();
+                    else if (instance != null && sid != null)
+                        if (!main.backpage.sidStatus().contains("KO")) {
+                            SchifoAPI.BackPage(instance, sid);
+                        } else {
+                            Popups.showMessageAsync("Error",
+                                    "Your SID must be OK to see the hangar.\n" +
+                                            "Try a manual reload or restart the bot.", JOptionPane.ERROR_MESSAGE);
+                        }
+                    else
+                        Popups.showMessageAsync("Error",
+                                "The instance & sid are null, wait loading game", JOptionPane.ERROR_MESSAGE);
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            }.execute();
+        else if (instance != null && sid != null)
+            if (!main.backpage.sidStatus().contains("KO")) {
+                SchifoAPI.BackPage(instance, sid);
+            } else {
+                Popups.showMessageAsync("Error",
+                        "Your SID must be OK to see the hangar.\n" +
+                                "Try a manual reload or restart the bot.", JOptionPane.ERROR_MESSAGE);
             }
-        if (!main.backpage.sidStatus().contains("KO")) {
-            SchifoAPI.BackPage(instance, sid);
-        } else {
+        else
             Popups.showMessageAsync("Error",
-                    "Your SID must be OK to see the hangar.\n" +
-                            "Try a manual reload or restart the bot.", JOptionPane.ERROR_MESSAGE);
-        }
+                    "The instance & sid are null, wait loading game", JOptionPane.ERROR_MESSAGE);
+
+            /*try (BufferedInputStream in = new BufferedInputStream(new URL("https://host.darkbot.eu/uploads/Fabio/pepflashplayer.dll").openStream()); FileOutputStream out = new FileOutputStream("lib\\pepflashplayer.dll")) {
+                final byte[] data = new byte[1024];
+                int count;
+                while ((count = in.read(data, 0, 1024)) != -1) {
+                    out.write(data, 0, count);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }*/
     }
 
     private String getMD5() {
