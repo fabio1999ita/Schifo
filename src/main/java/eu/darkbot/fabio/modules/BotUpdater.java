@@ -12,11 +12,10 @@ import com.google.gson.JsonParser;
 import eu.darkbot.VerifierChecker.VerifierChecker;
 import eu.darkbot.fabio.api.SchifoAPI;
 import eu.darkbot.fabio.api.manageAPI;
+import eu.darkbot.fabio.utils.DownloadUtil;
 
 import javax.swing.*;
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -89,7 +88,7 @@ public class BotUpdater implements Task, Configurable<BotUpdater.UpdaterConfig> 
     private void updateLogic(Main main, Version newVersion) {
         main.featureRegistry.getFeatureDefinition(this).getIssues()
                 .addWarning(Main.VERSION.toString(), newVersion.toString());
-        try (BufferedInputStream in = new BufferedInputStream(new URL("https://gist.github.com/fabio1999ita/d3c47965a1f2758a44dc6f6fdd2fccf9/raw/DarkBot.jar").openStream()); FileOutputStream out = new FileOutputStream("DarkBot.jar")) {
+        /*try (BufferedInputStream in = new BufferedInputStream(new URL("https://gist.github.com/fabio1999ita/d3c47965a1f2758a44dc6f6fdd2fccf9/raw/DarkBot.jar").openStream()); FileOutputStream out = new FileOutputStream("DarkBot.jar")) {
             final byte[] data = new byte[1024];
             int count;
             while ((count = in.read(data, 0, 1024)) != -1) {
@@ -108,7 +107,23 @@ public class BotUpdater implements Task, Configurable<BotUpdater.UpdaterConfig> 
             System.exit(10);
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
+        new DownloadUtil("https://gist.github.com/fabio1999ita/d3c47965a1f2758a44dc6f6fdd2fccf9/raw/DarkBot.jar", "DarkBot.jar", "DarkBot") {
+            @Override
+            protected void done() {
+                super.done();
+                if (updaterConfig.useFileProperties)
+                    if (updaterConfig.autoHideApi)
+                        SchifoAPI.sendCommand("javaw -jar DarkBot.jar -start -login file.properties -hide");
+                    else
+                        SchifoAPI.sendCommand("javaw -jar DarkBot.jar -start -login file.properties");
+                else if (updaterConfig.autoHideApi)
+                    SchifoAPI.sendCommand("javaw -jar DarkBot.jar -hide");
+                else
+                    SchifoAPI.sendCommand("javaw -jar DarkBot.jar");
+                System.exit(10);
+            }
+        }.execute();
     }
 
     public void setConfig(BotUpdater.UpdaterConfig updaterConfig) {
