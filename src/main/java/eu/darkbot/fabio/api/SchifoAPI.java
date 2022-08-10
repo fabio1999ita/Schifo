@@ -18,4 +18,10 @@ public class SchifoAPI {
     public static native void showHangar(String instance, String sid, String flashEmbed);
 
     public static native void BackPage(String instance, String sid);
+
+    public static native void hook();
+
+    public static native void unHook();
+
+    public static native boolean checkIfIsStuck();
 }
