@@ -45,10 +45,6 @@ public class ShowAllLogs implements Task, InstructionProvider, ExtraMenuProvider
     private JTextArea textDeathsPane;
     private JTextArea textExceptionsPane;
 
-    private JScrollPane logsScroll;
-    private JScrollPane deathsScroll;
-    private JScrollPane exceptionsScroll;
-
     @Override
     public void install(Main main) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), getClass().getSigners())) return;
@@ -61,7 +57,7 @@ public class ShowAllLogs implements Task, InstructionProvider, ExtraMenuProvider
         JPanel exceptionsPanel = new JPanel(new MigLayout(""));
 
         textLogsPane = new JTextArea();
-        logsScroll = new JScrollPane(textLogsPane);
+        JScrollPane logsScroll = new JScrollPane(textLogsPane);
         logsScroll.getVerticalScrollBar().setUnitIncrement(16);
         logsPanel.add(logsScroll, "height :" + Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 2 +
                 ":" + Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 1.3 +
@@ -69,7 +65,7 @@ public class ShowAllLogs implements Task, InstructionProvider, ExtraMenuProvider
                 ":" + Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 1.4);
 
         textDeathsPane = new JTextArea();
-        deathsScroll = new JScrollPane(textDeathsPane);
+        JScrollPane deathsScroll = new JScrollPane(textDeathsPane);
         deathsScroll.getVerticalScrollBar().setUnitIncrement(16);
         deathsPanel.add(deathsScroll, "height :" + Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 2 +
                 ":" + Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 1.3 +
@@ -77,7 +73,7 @@ public class ShowAllLogs implements Task, InstructionProvider, ExtraMenuProvider
                 ":" + Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 1.4);
 
         textExceptionsPane = new JTextArea();
-        exceptionsScroll = new JScrollPane(textExceptionsPane);
+        JScrollPane exceptionsScroll = new JScrollPane(textExceptionsPane);
         exceptionsScroll.getVerticalScrollBar().setUnitIncrement(16);
         exceptionsPanel.add(exceptionsScroll, "height :" + Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 2 +
                 ":" + Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 1.3 +
