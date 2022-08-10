@@ -3,16 +3,14 @@ package eu.darkbot.fabio.modules;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.extensions.features.Feature;
-import com.github.manolo8.darkbot.modules.utils.LegacyFlashPatcher;
 import eu.darkbot.VerifierChecker.VerifierChecker;
-import eu.darkbot.fabio.api.SchifoAPI;
 import eu.darkbot.util.Timer;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Feature(name = "CacheCleanup", description = "Auto cache cleanup for Darkbot", enabledByDefault = true)
@@ -32,6 +30,9 @@ public class CacheCleanup implements Task {
 
         this.main = main;
 
+        Objects.requireNonNull(main.featureRegistry.getFeatureDefinition(this)).getIssues()
+                .addWarning("This module is obsolete, feature are moved to AntiLoadingStuck module", "");
+
         try {
             Files.newDirectoryStream(Paths.get("."), p -> (time - p.toFile().lastModified()) > maxDiff
                             && (p.toFile().getName().contains("hs_err_pid")))
@@ -39,19 +40,19 @@ public class CacheCleanup implements Task {
                         try {
                             Files.delete(file);
                         } catch (IOException e) {
-                            throw new RuntimeException(e);
+                            e.printStackTrace();
                         }
                     });
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
     @Override
     public void backgroundTick() {
-        if (main != null && !main.config.BOT_SETTINGS.API_CONFIG.BROWSER_API.name().contains("NO_OP_API")
+        /*if (main != null && !main.config.BOT_SETTINGS.API_CONFIG.BROWSER_API.name().contains("NO_OP_API")
                 && !main.config.BOT_SETTINGS.API_CONFIG.BROWSER_API.name().contains("DARK_MEM_API")
-                && !(LocalTime.now().isAfter(LocalTime.parse("05:28:00")) && LocalTime.now().isBefore(LocalTime.parse("05:37:00")))) {
+                && !(LocalTime.now().isAfter(LocalTime.parse("05:28:00")) && LocalTime.now().isBefore(LocalTime.parse("05:39:00")))) {
             if (main.hero.map.id == -1) {
                 if (!checkCalendar) {
                     calendarTimer.tryActivate();
@@ -79,7 +80,7 @@ public class CacheCleanup implements Task {
                 }
                 Main.API.handleRefresh();
             }
-        }
+        }*/
     }
 
     @Override
