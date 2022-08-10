@@ -36,10 +36,10 @@ public class HangarView implements Task, ExtraMenuProvider {
     public Collection<JComponent> getExtraMenuItems(Main main) {
         if (manageAPI.addSeparator(main, "HangarView"))
             return Arrays.asList(createSeparator("Schifo"),
-                    create("Show Hangar", e -> logic(main)));
+                    create("Show Hangar", e -> logic(main, main.statsManager.instance, main.statsManager.sid)));
         else
             return Collections.singletonList(
-                    create("Show Hangar", e -> logic(main)));
+                    create("Show Hangar", e -> logic(main, main.statsManager.instance, main.statsManager.sid)));
     }
 
     @Override
@@ -47,29 +47,33 @@ public class HangarView implements Task, ExtraMenuProvider {
 
     }
 
-    private void logic(Main main) {
-        if (!main.backpage.sidStatus().contains("KO")) {
-            String flashEmbed = null;
-            try {
-                flashEmbed = main.backpage.getConnection("indexInternal.es?action=internalDock", Method.GET)
-                        .consumeInputStream(inputStream -> new BufferedReader(new InputStreamReader(inputStream))
-                                .lines()
-                                .filter(l -> l.contains("flashembed(\"equipment_container\""))
-                                .findFirst().orElse(null))
-                        .split("}, \\{")[1]
-                        .replaceAll(",", "&")
-                        .replaceAll(": ", "=")
-                        .replaceAll("\"", "")
-                        .replaceAll("}\\);", "");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+    private void logic(Main main, String instance, String sid) {
+        if (instance != null && sid != null)
+            if (!main.backpage.sidStatus().contains("KO")) {
+                String flashEmbed;
+                try {
+                    flashEmbed = main.backpage.getConnection("indexInternal.es?action=internalDock", Method.GET)
+                            .consumeInputStream(inputStream -> new BufferedReader(new InputStreamReader(inputStream))
+                                    .lines()
+                                    .filter(l -> l.contains("flashembed(\"equipment_container\""))
+                                    .findFirst().orElse(null))
+                            .split("}, \\{")[1]
+                            .replaceAll(",", "&")
+                            .replaceAll(": ", "=")
+                            .replaceAll("\"", "")
+                            .replaceAll("}\\);", "");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
 
-            SchifoAPI.showHangar(main.statsManager.instance, main.statsManager.sid, flashEmbed);
-        } else {
+                SchifoAPI.showHangar(main.statsManager.instance, main.statsManager.sid, flashEmbed);
+            } else {
+                Popups.showMessageAsync("Error",
+                        "Your SID must be OK to see the hangar.\n" +
+                                "Try a manual reload or restart the bot.", JOptionPane.ERROR_MESSAGE);
+            }
+        else
             Popups.showMessageAsync("Error",
-                    "Your SID must be OK to see the hangar.\n" +
-                            "Try a manual reload or restart the bot.", JOptionPane.ERROR_MESSAGE);
-        }
+                    "The instance & sid are null, wait loading game", JOptionPane.ERROR_MESSAGE);
     }
 }
