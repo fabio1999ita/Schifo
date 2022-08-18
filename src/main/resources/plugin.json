@@ -1,13 +1,12 @@
 {
   "name": "Schifo",
   "author": "Fabio",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "minVersion": "1.13.17 beta 108",
   "supportedVersion": "1.13.17 beta 108",
   "features": [
     "eu.darkbot.fabio.modules.AntiLoadingStuck",
     "eu.darkbot.fabio.modules.BotUpdater",
-    "eu.darkbot.fabio.modules.CacheCleanup",
     "eu.darkbot.fabio.modules.BackPage",
     "eu.darkbot.fabio.modules.HangarView",
     "eu.darkbot.fabio.modules.AutoRestart",
