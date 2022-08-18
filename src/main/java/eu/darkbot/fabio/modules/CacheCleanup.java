@@ -6,11 +6,7 @@ import com.github.manolo8.darkbot.extensions.features.Feature;
 import eu.darkbot.VerifierChecker.VerifierChecker;
 import eu.darkbot.util.Timer;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Feature(name = "CacheCleanup", description = "Auto cache cleanup for Darkbot", enabledByDefault = true)
@@ -29,23 +25,6 @@ public class CacheCleanup implements Task {
         if (!VerifierChecker.getAuthApi().requireDonor()) return;
 
         this.main = main;
-
-        Objects.requireNonNull(main.featureRegistry.getFeatureDefinition(this)).getIssues()
-                .addWarning("This module is obsolete, feature are moved to AntiLoadingStuck module", "");
-
-        try {
-            Files.newDirectoryStream(Paths.get("."), p -> (time - p.toFile().lastModified()) > maxDiff
-                            && (p.toFile().getName().contains("hs_err_pid")))
-                    .forEach(file -> {
-                        try {
-                            Files.delete(file);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
