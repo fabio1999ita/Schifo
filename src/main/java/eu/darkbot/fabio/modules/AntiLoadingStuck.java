@@ -8,18 +8,26 @@ import eu.darkbot.fabio.api.SchifoAPI;
 import eu.darkbot.fabio.api.manageAPI;
 import eu.darkbot.util.Timer;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
-@Feature(name = "AntiLoadingStuck [BETA]", description = "Avoid stuck in loading screen", enabledByDefault = true)
+@Feature(name = "AntiLoadingStuck", description = "Avoid stuck in loading screen & clear cache if need", enabledByDefault = true)
 public class AntiLoadingStuck implements Task {
 
     Timer timer = Timer.get(1_000);
+    final long time = System.currentTimeMillis();
+
     boolean checkCalendar;
     boolean isRefreshing;
     private Main main;
-    private boolean checkHook;
-    private boolean checkUnHook;
+    final long maxDiff = TimeUnit.DAYS.toMillis(3);
+    Timer postTimer = Timer.get(TimeUnit.MINUTES.toMillis(7));
+    private boolean isHook;
+    private boolean isUnHook;
 
     @Override
     public void install(Main main) {
@@ -36,8 +44,23 @@ public class AntiLoadingStuck implements Task {
         this.main = main;
 
         SchifoAPI.hook();
-        checkHook = true;
-        checkUnHook = false;
+        isHook = true;
+        isUnHook = false;
+        isRefreshing = true;
+
+        try {
+            Files.newDirectoryStream(Paths.get("."), p -> (time - p.toFile().lastModified()) > maxDiff
+                            && (p.toFile().getName().contains("hs_err_pid")))
+                    .forEach(file -> {
+                        try {
+                            Files.delete(file);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -46,38 +69,38 @@ public class AntiLoadingStuck implements Task {
                 && !main.config.BOT_SETTINGS.API_CONFIG.BROWSER_API.name().contains("DARK_MEM_API")
                 && !(LocalTime.now().isAfter(LocalTime.parse("05:28:00")) && LocalTime.now().isBefore(LocalTime.parse("05:39:00")))) {
             if (main.hero.map.id == -1) {
-
                 if (!checkCalendar) {
                     timer.tryActivate();
                     checkCalendar = true;
                 }
-                if (!checkHook) {
+                if (!isHook) {
                     SchifoAPI.hook();
-                    checkHook = true;
-                    checkUnHook = false;
+                    isHook = true;
+                    isUnHook = false;
                     isRefreshing = true;
                 }
 
-                if (timer.isArmed() && timer.isInactive()) {
+                if ((timer.isArmed() && timer.isInactive()) || (postTimer.isArmed() && postTimer.isInactive())) {
                     if (SchifoAPI.checkIfIsStuck() && isRefreshing) {
-                        isRefreshing = false;
                         SchifoAPI.sendCommand("RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 2");
                         SchifoAPI.sendCommand("RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 8");
                         SchifoAPI.sendCommand("RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 16");
 
                         Main.API.handleRefresh();
+
+                        timer.disarm();
+                        postTimer.tryActivate();
                     }
-                    timer.disarm();
-                    checkCalendar = false;
                 }
 
-                int a = 0;
             } else {
-                if (!checkUnHook) {
+                if (!isUnHook) {
+                    checkCalendar = false;
                     isRefreshing = false;
                     SchifoAPI.unHook();
-                    checkUnHook = true;
-                    checkHook = false;
+                    isUnHook = true;
+                    isHook = false;
+                    postTimer.disarm();
                 }
             }
         }
