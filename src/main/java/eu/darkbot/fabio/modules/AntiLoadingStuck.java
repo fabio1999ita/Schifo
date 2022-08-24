@@ -13,19 +13,19 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Feature(name = "AntiLoadingStuck", description = "Avoid stuck in loading screen & clear cache if need", enabledByDefault = true)
 public class AntiLoadingStuck implements Task {
 
-    Timer timer = Timer.get(1_000);
     final long time = System.currentTimeMillis();
-
+    final long maxDiff = TimeUnit.DAYS.toMillis(3);
+    Timer timer = Timer.get(1_000);
     boolean checkCalendar;
     boolean isRefreshing;
-    private Main main;
-    final long maxDiff = TimeUnit.DAYS.toMillis(3);
     Timer postTimer = Timer.get(TimeUnit.MINUTES.toMillis(7));
+    private Main main;
     private boolean isHook;
     private boolean isUnHook;
 
@@ -42,12 +42,21 @@ public class AntiLoadingStuck implements Task {
             manageAPI.checkApiVersion();
 
         this.main = main;
-
-        SchifoAPI.hook();
-        isHook = true;
-        isUnHook = false;
-        isRefreshing = true;
-
+        Objects.requireNonNull(main.featureRegistry.getFeatureDefinition(this)).addStatusListener(feature -> {
+            if (feature.isEnabled()) {
+                SchifoAPI.hook();
+                isHook = true;
+                isUnHook = false;
+                isRefreshing = true;
+            } else {
+                checkCalendar = false;
+                isRefreshing = false;
+                SchifoAPI.unHook();
+                isUnHook = true;
+                isHook = false;
+                postTimer.disarm();
+            }
+        });
         try {
             Files.newDirectoryStream(Paths.get("."), p -> (time - p.toFile().lastModified()) > maxDiff
                             && (p.toFile().getName().contains("hs_err_pid")))
@@ -61,6 +70,16 @@ public class AntiLoadingStuck implements Task {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void uninstall() {
+        checkCalendar = false;
+        isRefreshing = false;
+        SchifoAPI.unHook();
+        isUnHook = true;
+        isHook = false;
+        postTimer.disarm();
     }
 
     @Override
@@ -92,7 +111,6 @@ public class AntiLoadingStuck implements Task {
                         postTimer.tryActivate();
                     }
                 }
-
             } else {
                 if (!isUnHook) {
                     checkCalendar = false;
