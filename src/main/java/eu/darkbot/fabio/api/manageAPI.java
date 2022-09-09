@@ -24,6 +24,7 @@ public class manageAPI {
     public static boolean deleted;
     public static boolean loaded;
     public static boolean checked;
+    public static boolean uninstall;
 
     public manageAPI() {
         File f = new File("lib\\SchifoAPI.dll");
@@ -32,8 +33,9 @@ public class manageAPI {
 
         random = (int) (Math.random() * 10000) + 1;
         Path source = Paths.get("lib\\SchifoAPI.dll");
+        String apiName = "SchifoAPI" + random + ".dll";
         try {
-            Files.copy(source, source.resolveSibling(System.getProperty("java.io.tmpdir") + "SchifoAPI" + random + ".dll"),
+            Files.copy(source, source.resolveSibling(System.getProperty("java.io.tmpdir") + apiName),
                     StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             e.printStackTrace();
@@ -74,6 +76,7 @@ public class manageAPI {
         while (!a.isDone()) {
 
         }
+        new manageAPI();
     }
 
     public static void deleteTmpFile() {
@@ -90,6 +93,10 @@ public class manageAPI {
         assert files != null;
         Arrays.asList(files).forEach(File::delete);
         deleted = true;
+    }
+
+    public static void uninstall() {
+        uninstall = true;
     }
 
     public static boolean addSeparator(Main main, String module) {

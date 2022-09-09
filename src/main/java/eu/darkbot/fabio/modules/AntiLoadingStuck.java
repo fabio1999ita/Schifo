@@ -1,6 +1,7 @@
 package eu.darkbot.fabio.modules;
 
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.core.api.GameAPI;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import eu.darkbot.VerifierChecker.VerifierChecker;
@@ -18,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 
 @Feature(name = "AntiLoadingStuck", description = "Avoid stuck in loading screen & clear cache if need", enabledByDefault = true)
 public class AntiLoadingStuck implements Task {
-
     final long time = System.currentTimeMillis();
     final long maxDiff = TimeUnit.DAYS.toMillis(3);
     Timer timer = Timer.get(1_000);
@@ -80,13 +80,16 @@ public class AntiLoadingStuck implements Task {
         isUnHook = true;
         isHook = false;
         postTimer.disarm();
+
+        if (!manageAPI.uninstall)
+            manageAPI.uninstall();
     }
 
     @Override
     public void backgroundTick() {
-        if (main != null && !main.config.BOT_SETTINGS.API_CONFIG.BROWSER_API.name().contains("NO_OP_API")
-                && !main.config.BOT_SETTINGS.API_CONFIG.BROWSER_API.name().contains("DARK_MEM_API")
-                && !(LocalTime.now().isAfter(LocalTime.parse("05:28:00")) && LocalTime.now().isBefore(LocalTime.parse("05:39:00")))) {
+        LocalTime localTimeNow = LocalTime.now();
+        if (main != null && Main.API.hasCapability(GameAPI.Capability.LOGIN)
+                && !(localTimeNow.isAfter(LocalTime.parse("05:28:00")) && localTimeNow.isBefore(LocalTime.parse("05:39:00")))) {
             if (main.hero.map.id == -1) {
                 if (!checkCalendar) {
                     timer.tryActivate();
